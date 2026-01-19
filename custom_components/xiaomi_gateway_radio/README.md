@@ -1,6 +1,10 @@
 # xiaomi_miio_gateway
 Home Assistant Xiaomi Gateway Radio
 
+New Version Full Compatibility With Homeassistant 2026.1.0
+
+Fully configurable from the UI
+
 This is a custom component to play/stop the Network radio in a Xiaomi Gateway
 
 this plays the last played station on the gateway

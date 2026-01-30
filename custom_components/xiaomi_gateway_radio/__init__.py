@@ -1,4 +1,8 @@
 import logging
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning, module="miio")
+warnings.filterwarnings("ignore", category=RuntimeWarning)
+
 from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
@@ -12,6 +16,12 @@ _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[str] = ["media_player"]
 
+# ✅ CORRETTO: lazy import miio (quello originale)
+try:
+    from miio import Device, DeviceException  # type: ignore
+except ImportError:
+    Device = None
+    DeviceException = None
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up from YAML (not used, config flow only)."""
@@ -25,15 +35,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     host = entry.data[CONF_HOST]
     token = entry.data[CONF_TOKEN]
 
-    # Import miio at module level (no import inside async)
-    from miio import Device, DeviceException  # type: ignore
+    if Device is None:
+        _LOGGER.error("python-miio not available")
+        return False
 
     async def _create_device():
         def _sync_create():
             dev = Device(host, token)
             info = dev.info()
             return dev, info
-
         return await hass.async_add_executor_job(_sync_create)
 
     try:

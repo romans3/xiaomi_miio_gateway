@@ -14,5 +14,6 @@
   "loggers": [
     "miio",
     "python_miio"
-  ]
+  ],
+  "dependencies": []
 }

@@ -1,6 +1,5 @@
 import logging
 import voluptuous as vol
-
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
@@ -9,14 +8,21 @@ from .const import DOMAIN, CONF_HOST, CONF_TOKEN, DEFAULT_NAME
 
 _LOGGER = logging.getLogger(__name__)
 
+# ✅ SINGOLO lazy import
+try:
+    from miio import Device, DeviceException  # type: ignore
+except ImportError:
+    Device = None
+    DeviceException = None
 
 async def _async_validate_input(hass: HomeAssistant, data: dict) -> dict:
     """Validate the user input allows us to connect."""
+    
+    if Device is None:
+        raise Exception("python-miio not available")
 
     host = data[CONF_HOST]
     token = data[CONF_TOKEN]
-
-    from miio import Device, DeviceException  # type: ignore
 
     def _sync_test():
         dev = Device(host, token)
@@ -31,7 +37,6 @@ async def _async_validate_input(hass: HomeAssistant, data: dict) -> dict:
         "firmware": info.firmware_version,
         "hardware": info.hardware_version,
     }
-
 
 class XiaomiGatewayRadioConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Xiaomi Gateway Radio."""

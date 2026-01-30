@@ -23,6 +23,11 @@ SUPPORT_XIAOMI_GATEWAY_FM = (
     | MediaPlayerEntityFeature.VOLUME_MUTE
 )
 
+try:
+    from miio import Device, DeviceException  # type: ignore
+except ImportError:
+    Device = None
+    DeviceException = None
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -112,7 +117,10 @@ class XiaomiGatewayRadioMediaPlayer(MediaPlayerEntity):
     # ---------------------------
 
     async def _async_try_command(self, mask_error: str, func, *args, **kwargs) -> bool:
-        from miio import DeviceException
+        """Nessun import qui!"""
+        if DeviceException is None:
+            _LOGGER.error("python-miio not available")
+            return False
 
         try:
             result = await self.hass.async_add_executor_job(
@@ -120,7 +128,7 @@ class XiaomiGatewayRadioMediaPlayer(MediaPlayerEntity):
             )
             _LOGGER.debug("Response from Xiaomi Gateway Radio: %s", result)
             return True
-        except DeviceException as exc:
+        except DeviceException as exc:  # ✅ Ora funziona
             _LOGGER.error("%s: %s", mask_error, exc)
             self._attr_available = False
             return False
@@ -187,7 +195,10 @@ class XiaomiGatewayRadioMediaPlayer(MediaPlayerEntity):
     # ---------------------------
 
     async def async_update(self):
-        from miio import DeviceException
+        """Nessun import qui!"""
+        if DeviceException is None:
+            self._attr_available = False
+            return
 
         try:
             def _sync_state():
@@ -211,6 +222,6 @@ class XiaomiGatewayRadioMediaPlayer(MediaPlayerEntity):
 
             self._attr_available = True
 
-        except DeviceException as ex:
+        except DeviceException as ex:  # ✅ Ora funziona
             self._attr_available = False
             _LOGGER.error("Error while fetching state: %s", ex)
